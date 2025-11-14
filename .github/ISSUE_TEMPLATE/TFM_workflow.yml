@@ -51,5 +51,6 @@ body:
     attributes:
       label: Referencias
       value: |
+        ## Referencias
         - [Nombre del recurso](enlace)
         - [Otro recurso relevante](enlace)
