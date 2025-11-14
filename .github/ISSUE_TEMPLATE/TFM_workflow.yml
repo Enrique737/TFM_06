@@ -1,79 +1,42 @@
 name: TFM Workflow Issue
 description: Plantilla para issues del Trabajo de Fin de Máster
 title: "[Área][Tipo] Descripción breve"
-labels: [ ]  # Los labels se aplicarán automáticamente mediante las selecciones
 body:
   - type: dropdown
     id: deliverable
     attributes:
       label: Entregable objetivo
       options:
-        - label: T1 - Entregable 1
-          description: Primer entregable del proyecto
-          x-github-labels: 
-            - T1
-        - label: T2 - Entregable 2
-          description: Segundo entregable del proyecto
-          x-github-labels: 
-            - T2
-        - label: T3 - Entregable 3
-          description: Tercer entregable del proyecto
-          x-github-labels: 
-            - T3
+        - T1 - Entregable 1
+        - T2 - Entregable 2
+        - T3 - Entregable 3
 
   - type: dropdown
     id: area
     attributes:
       label: Área de trabajo
       options:
-        - label: DF - Formateo de datos
-          x-github-labels: 
-            - DF
-        - label: DA - Análisis de datos
-          x-github-labels: 
-            - DA
-        - label: P - Pruning
-          x-github-labels: 
-            - P
-        - label: SQL - Consultas SQL
-          x-github-labels: 
-            - SQL
-        - label: PBI - Power BI
-          x-github-labels: 
-            - PBI
+        - DF - Formateo de datos
+        - DA - Análisis de datos
+        - P - Pruning
+        - SQL - Consultas SQL
+        - PBI - Power BI
 
   - type: dropdown
     id: task-type
     attributes:
       label: Tipo de tarea
       options:
-        - label: Analysis - Análisis
-          description: Discusión y análisis sin cambios de código
-          x-github-labels: 
-            - Analysis
-        - label: Code - Implementación
-          description: Desarrollo de código
-          x-github-labels: 
-            - Code
-        - label: Design - Diseño
-          description: Diseño de arquitectura o interfaz
-          x-github-labels: 
-            - Design
-        - label: Organize - Organización
-          x-github-labels: 
-            - Organize
+        - Analysis - Análisis
+        - Code - Implementación
+        - Design - Diseño
+        - Organize - Organización
 
   - type: textarea
     id: description
     attributes:
       label: Descripción detallada
-      description: Explica claramente el objetivo de esta issue
-      placeholder: |
-        ## Objetivo
-        [Explica el objetivo específico de esta tarea]
-        
-        ## Contexto
-        [Proporciona contexto necesario para entender la tarea]
+      placeholder: "## Objetivo\n[Explica el objetivo]\n\n## Contexto\n[Proporciona contexto]"
     validations:
       required: true
 
@@ -81,7 +44,4 @@ body:
     id: references
     attributes:
       label: Referencias
-      description: Enlaces a documentos, papers o recursos relevantes
-      placeholder: |
-        - [Nombre del recurso](enlace)
-        - [Otro recurso](enlace)
+      placeholder: "- [Nombre](enlace)"
