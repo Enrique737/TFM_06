@@ -37,7 +37,12 @@ body:
     id: description
     attributes:
       label: Descripción detallada
-      placeholder: "## Objetivo\n[Explica el objetivo]\n\n## Contexto\n[Proporciona contexto]"
+      value: |
+        ## Objetivo
+        [Explica aquí el objetivo específico de esta tarea]
+
+        ## Contexto
+        [Proporciona el contexto necesario para entender la tarea]
     validations:
       required: true
 
@@ -45,4 +50,6 @@ body:
     id: references
     attributes:
       label: Referencias
-      placeholder: "- [Nombre](enlace)"
+      value: |
+        - [Nombre del recurso](enlace)
+        - [Otro recurso relevante](enlace)
