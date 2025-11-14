@@ -16,11 +16,12 @@ body:
     attributes:
       label: Área de trabajo
       options:
-        - DF - Formateo de datos
-        - DA - Análisis de datos
-        - P - Pruning
+        - Data Formating - Formateo de datos
+        - Data Analysis - Análisis de datos
+        - Pruning - Pruning
         - SQL - Consultas SQL
-        - PBI - Power BI
+        - Power BI - Power BI
+        - Management - Mantenimiento
 
   - type: dropdown
     id: task-type
