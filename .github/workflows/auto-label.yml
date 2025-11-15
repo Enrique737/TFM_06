@@ -1,0 +1,82 @@
+name: Auto-label Issues
+on:
+  issues:
+    types: [opened]
+
+jobs:
+  label:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Parse issue and apply labels
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const issueBody = context.payload.issue.body;
+            const labelsToAdd = [];
+
+            // 1. Mapeo de códigos a nombres reales de labels
+            const labelMap = {
+              // Entregables (T1, T2, T3 -> nombres reales)
+              'T1': 'T1',
+              'T2': 'T2',
+              'T3': 'T3',
+              
+              // Áreas (códigos -> nombres reales)
+              'DF': 'Data Formating',
+              'DA': 'Data Analysis',
+              'P': 'Pruning',
+              'SQL': 'SQL',
+              'PBI': 'Power BI',
+              
+              // Tipos de tarea (códigos -> nombres reales)
+              'Analysis': 'Analysis',
+              'Code': 'Code',
+              'Design': 'Design',
+              'Organize': 'Organize',
+              
+              // Tipos de issue (códigos -> nombres reales)
+              'Task': 'Task',
+              'Bug': 'Bug',
+              'Enhancement': 'Enhancement'
+            };
+
+            // 2. Detectar ENTREGABLE (T1, T2, T3)
+            const deliverableMatch = issueBody.match(/Entregable objetivo:\s*\*\*(T\d)/);
+            if (deliverableMatch) {
+              const code = deliverableMatch[1];
+              if (labelMap[code]) labelsToAdd.push(labelMap[code]);
+            }
+
+            // 3. Detectar ÁREA (DF, DA, P, SQL, PBI)
+            const areaMatch = issueBody.match(/Área de trabajo:\s*\*\*(\w{2,3})/);
+            if (areaMatch) {
+              const code = areaMatch[1];
+              if (labelMap[code]) labelsToAdd.push(labelMap[code]);
+            }
+
+            // 4. Detectar TIPO DE TAREA (Analysis, Code, etc.)
+            const taskMatch = issueBody.match(/Tipo de tarea:\s*\*\*(\w+)/);
+            if (taskMatch) {
+              const code = taskMatch[1];
+              if (labelMap[code]) labelsToAdd.push(labelMap[code]);
+            }
+
+            // 5. Detectar TIPO DE ISSUE (Task, Bug, Enhancement) - ¡CORREGIDO!
+            const typeMatch = issueBody.match(/Tipo de issue:\s*\*\*(\w+)/);
+            if (typeMatch) {
+              const code = typeMatch[1]; // ¡CORREGIDO: ahora usa typeMatch!
+              if (labelMap[code]) labelsToAdd.push(labelMap[code]);
+            }
+
+            // Aplicar labels si se encontraron
+            if (labelsToAdd.length > 0) {
+              console.log(`Aplicando labels: ${labelsToAdd.join(', ')}`);
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                labels: labelsToAdd
+              });
+            }
+          env:
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
