@@ -1,0 +1,56 @@
+name: TFM Workflow Issue
+description: Plantilla para issues del Trabajo de Fin de Máster
+title: "[Área][Tipo] Descripción breve"
+body:
+  - type: dropdown
+    id: deliverable
+    attributes:
+      label: Entregable objetivo
+      options:
+        - T1 - Entregable 1
+        - T2 - Entregable 2
+        - T3 - Entregable 3
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Área de trabajo
+      options:
+        - Data Formating - Formateo de datos
+        - Data Analysis - Análisis de datos
+        - Pruning - Pruning
+        - SQL - Consultas SQL
+        - Power BI - Power BI
+        - Management - Mantenimiento
+
+  - type: dropdown
+    id: task-type
+    attributes:
+      label: Tipo de tarea
+      options:
+        - Analysis - Análisis
+        - Code - Implementación
+        - Design - Diseño
+        - Organize - Organización
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Descripción detallada
+      value: |
+        ## Objetivo
+        [Explica aquí el objetivo específico de esta tarea]
+
+        ## Contexto
+        [Proporciona el contexto necesario para entender la tarea]
+    validations:
+      required: true
+
+  - type: textarea
+    id: references
+    attributes:
+      label: Referencias
+      value: |
+        ## Referencias
+        - [Nombre del recurso](enlace)
+        - [Otro recurso relevante](enlace)
