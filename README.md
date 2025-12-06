@@ -102,6 +102,20 @@ git commit -m "Add: nuevo dataset"
 git push
 ```
 
+### 🔄 Sincronización Automática (Jupytext)
+
+Hemos automatizado la conversión entre Notebooks (`.ipynb`) y Scripts (`.py`) en los scripts de sincronización. **Es muy importante usar los archivos .bat para hacer pull/push**:
+
+* **Al hacer Pull (`sync_bajar.bat`)**:
+    1.  Git baja los cambios de los compañeros (archivos `.py`).
+    2.  Automáticamente se actualizan tus `.ipynb` locales con ese código nuevo.
+    
+* **Al hacer Push (`sync_subir.bat`)**:
+    1.  El script fuerza una sincronización de tus `.ipynb` a los archivos `.py`.
+    2.  Esto asegura que lo que subes a GitHub coincide exactamente con lo que tienes en tu notebook, incluso si olvidaste guardar el script manualmente.
+
+> **Nota:** Si usas los comandos de git manuales (`git pull`/`git push`) en la terminal, esta sincronización automática NO ocurrirá y podrías tener versiones desactualizadas. ¡Usa los `.bat`!
+
 ---
 ## 🌳 Estrategia de Ramas (Git Flow)
 - main: 🛡️ Código estable y producción. Nadie hace commit directo aquí.
