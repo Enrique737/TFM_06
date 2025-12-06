@@ -1,0 +1,5 @@
+outs:
+- md5: b5bbdac5c7a42f9221aa8593580ca518
+  size: 286963712
+  hash: md5
+  path: customer_sociodemographics.csv

@@ -1,0 +1,5 @@
+outs:
+- md5: 7789d103e608d2cc80c948463d963d41
+  size: 353389781
+  hash: md5
+  path: customer_commercial_activity.csv

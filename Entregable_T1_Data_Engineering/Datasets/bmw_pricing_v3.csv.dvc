@@ -1,0 +1,5 @@
+outs:
+- md5: 13e4fe4eb4b98f1a69687718af35ed2d
+  size: 506279
+  hash: md5
+  path: bmw_pricing_v3.csv
