@@ -94,8 +94,8 @@ def porcentaje_nulos(df):
     Retorno:
     - pandas.Series con el porcentaje de nulos por columna.
     """
-    for i in df_comm.columns:
-        prctj = df_comm[i].isnull().mean() * 100
+    for i in df.columns:
+        prctj = df[i].isnull().mean() * 100
         print(f'{prctj:.3f}% \tde nulos en {i}')
     return
 
@@ -103,6 +103,17 @@ def porcentaje_nulos(df):
 
 # %%
 def auditoria_nulos(df):
+    """
+    Realiza una auditoría de los valores nulos en un DataFrame.
+    Parámetros:
+    - df: pandas.DataFrame
+    Retorno:
+    - pandas.DataFrame con las filas que contienen al menos un valor nulo,
+      incluyendo una columna adicional 'n_nulos' que indica el número de
+      valores nulos en cada fila.
+    """
+    print("Auditoría de nulos en el DataFrame:")
+    
     nulos_por_col = df.isnull().sum()
     cols_con_nulos = nulos_por_col[nulos_por_col > 0]
     
@@ -336,3 +347,125 @@ def analizar_correlaciones_productos(df, cols_productos, agrupar=False, clave_ag
     plt.show()
 
 
+
+# %%
+def imputar_por_similitud(df, target_col, numeric_cols, cat_bool_cols, umbral_dominancia=0.75, margen_global=0.05, usar_percentiles=False, estrategia='moda'):
+    """
+        Imputa valores nulos en una columna objetivo basándose en la similitud con otros registros (vecinos).
+        
+        Esta función busca filas similares a aquellas que tienen datos faltantes en `target_col`. 
+        La similitud se define mediante coincidencias exactas en variables categóricas/booleanas 
+        y proximidad dentro de un margen en variables numéricas.
+
+        Lógica de búsqueda de vecinos:
+        1. Filtro estricto: Debe coincidir el valor en todas las columnas de `cat_bool_cols`.
+        2. Filtro numérico: El valor debe estar dentro de un rango (margen) definido para `numeric_cols`.
+        - Si `usar_percentiles=False`: Rango = valor ± (valor * margen).
+        - Si `usar_percentiles=True`: Rango = percentiles correspondientes al (rank_actual ± margen).
+
+        Args:
+            df (pd.DataFrame): DataFrame original conteniendo los datos.
+            target_col (str): Nombre de la columna que contiene los valores nulos a imputar.
+            numeric_cols (list o dict): 
+                - Si es lista: Columnas numéricas para comparar similitud usando `margen_global`.
+                - Si es dict: Claves son columnas y valores son el margen específico para esa columna (ej. {'edad': 0.1}).
+            cat_bool_cols (list): Lista de columnas categóricas o booleanas para coincidencia exacta (Hard matching).
+            umbral_dominancia (float, opcional): Solo para estrategia 'moda'. Porcentaje mínimo de coincidencia 
+                entre vecinos para aceptar la imputación (defecto 0.75).
+            margen_global (float, opcional): Tolerancia por defecto para la comparación numérica (defecto 0.05 o 5%).
+            usar_percentiles (bool, opcional): Define cómo se calcula el margen numérico. 
+                False usa distancia relativa al valor; True usa distancia en la distribución (quantiles).
+            estrategia (str, opcional): Método de agregación de los vecinos encontrados.
+                - 'moda': Valor más frecuente (requiere cumplir `umbral_dominancia`).
+                - 'mediana': Mediana de los vecinos (soporta números y fechas).
+                - 'media': Promedio aritmético (solo números).
+
+        Returns:
+            pd.DataFrame: Una copia del DataFrame original con los valores imputados donde fue posible.
+    """
+
+    df_out = df.copy()
+    
+    if df_out[target_col].isnull().sum() == 0:
+        return df_out
+
+    filas_nulas = df_out[df_out[target_col].isnull()]
+    print(f"Procesando {len(filas_nulas)} nulos en '{target_col}' | Estrategia: {estrategia} | Percentiles: {usar_percentiles}...")
+    
+    imputaciones = 0
+    
+    # Pre-procesamiento config numérica
+    if isinstance(numeric_cols, list):
+        numeric_config = {col: margen_global for col in numeric_cols}
+    else:
+        numeric_config = numeric_cols
+
+    for idx, row in filas_nulas.iterrows():
+        mask = pd.Series([True] * len(df), index=df.index)
+        
+        # 1. Filtros
+        for col in cat_bool_cols:
+            valor = row[col]
+            if not pd.isna(valor):
+                mask &= (df[col] == valor)
+        
+        for col, margen_especifico in numeric_config.items():
+            valor = row[col]
+            if not pd.isna(valor):
+                if usar_percentiles:
+                    # Lógica Percentil
+                    rank_actual = (df[col] < valor).mean()
+                    q_min = max(0, rank_actual - margen_especifico)
+                    q_max = min(1, rank_actual + margen_especifico)
+                    try:
+                        lim_inf = df[col].quantile(q_min)
+                        lim_sup = df[col].quantile(q_max)
+                        mask &= (df[col].between(lim_inf, lim_sup))
+                    except: pass
+                else:
+                    # Lógica Rango Fijo
+                    try:
+                        lim_inf = valor * (1 - margen_especifico)
+                        lim_sup = valor * (1 + margen_especifico)
+                        if valor < 0: lim_inf, lim_sup = lim_sup, lim_inf
+                        mask &= (df[col].between(lim_inf, lim_sup))
+                    except: pass
+
+        mask &= (df.index != idx)
+        vecinos = df.loc[mask, target_col]
+        
+        vecinos = vecinos.dropna()
+        
+        if vecinos.empty:
+            continue
+            
+        # 2. DECISIÓN SEGÚN ESTRATEGIA
+        valor_imputado = None
+        
+        if estrategia == 'moda':
+            # Lógica original: Requiere consenso
+            conteo = vecinos.value_counts(normalize=True)
+            if not conteo.empty:
+                if conteo.iloc[0] >= umbral_dominancia:
+                    valor_imputado = conteo.index[0]
+        
+        elif estrategia == 'mediana':
+            # Lógica numérica/fechas: Valor central
+            # Para fechas, convertimos a numérico, calculamos mediana y reconvertimos
+            if pd.api.types.is_datetime64_any_dtype(vecinos):
+                mediana_num = vecinos.astype(np.int64).median()
+                valor_imputado = pd.to_datetime(mediana_num)
+            else:
+                valor_imputado = vecinos.median()
+                
+        elif estrategia == 'media':
+             if pd.api.types.is_numeric_dtype(vecinos):
+                valor_imputado = vecinos.mean()
+
+        # 3. Asignación
+        if valor_imputado is not None:
+            df_out.at[idx, target_col] = valor_imputado
+            imputaciones += 1
+
+    print(f"Terminado: Se imputaron {imputaciones} de {len(filas_nulas)} ({round(imputaciones/len(filas_nulas)*100, 2)}%).")
+    return df_out
