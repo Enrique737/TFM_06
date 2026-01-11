@@ -1,0 +1,5 @@
+outs:
+- md5: 0630b65692ad80b582c50fe7d78e966f
+  size: 281103829
+  hash: md5
+  path: sample_mmp.csv
