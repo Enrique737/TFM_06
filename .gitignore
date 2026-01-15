@@ -1,1 +1,5 @@
-!penv
+penv
+*.csv
+*.ipynb
+*__pycache__/
+*.pyc
