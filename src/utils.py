@@ -469,3 +469,30 @@ def imputar_por_similitud(df, target_col, numeric_cols, cat_bool_cols, umbral_do
 
     print(f"Terminado: Se imputaron {imputaciones} de {len(filas_nulas)} ({round(imputaciones/len(filas_nulas)*100, 2)}%).")
     return df_out
+
+
+# %%
+def detectar_outliers_iqr(df, columnas_numericas):
+    outliers_dict = {}
+    for col in columnas_numericas:
+        Q1 = df[col].quantile(0.25)
+        Q3 = df[col].quantile(0.75)
+        IQR = Q3 - Q1
+        
+        lim_inf = Q1 - 1.5 * IQR
+        lim_sup = Q3 + 1.5 * IQR
+        
+        # Filtramos los valores que caen fuera
+        mask_outliers = (df[col] < lim_inf) | (df[col] > lim_sup)
+        n_outliers = mask_outliers.sum()
+        
+        if n_outliers > 0:
+            outliers_dict[col] = {
+                'n_outliers': n_outliers,
+                'lim_inf': lim_inf, 
+                'lim_sup': lim_sup,
+                '%_dataset': (n_outliers / len(df)) * 100
+            }
+            print(f"{col}: {n_outliers} outliers detectados ({outliers_dict[col]['%_dataset']:.2f}%)")
+            
+    return outliers_dict
