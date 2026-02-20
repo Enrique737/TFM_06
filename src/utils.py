@@ -491,8 +491,43 @@ def detectar_outliers_iqr(df, columnas_numericas):
                 'n_outliers': n_outliers,
                 'lim_inf': lim_inf, 
                 'lim_sup': lim_sup,
-                '%_dataset': (n_outliers / len(df)) * 100
+                '%_dataset': mask_outliers.mean() * 100
             }
             print(f"{col}: {n_outliers} outliers detectados ({outliers_dict[col]['%_dataset']:.2f}%)")
             
     return outliers_dict
+
+
+# %%
+from sklearn.base import BaseEstimator, TransformerMixin
+import pandas as pd
+
+class ScaledKNNImputer(BaseEstimator, TransformerMixin):
+    def __init__(self, scaler=None, imputer=None):
+        self.scaler = scaler if scaler else StandardScaler()
+        self.imputer = imputer if imputer else KNNImputer(n_neighbors=5)
+        
+    def fit(self, X, y=None):
+        # 1. Ajustamos el escalador con los datos disponibles
+        self.scaler.fit(X)
+        # 2. Transformamos para que el KNN aprenda sobre datos escalados
+        X_scaled = self.scaler.transform(X)
+        # 3. Ajustamos el KNN
+        self.imputer.fit(X_scaled)
+        return self
+
+    def transform(self, X):
+        # 1. Escalar
+        X_scaled = self.scaler.transform(X)
+        # 2. Imputar (devuelve datos escalados sin nulos)
+        X_imputed_scaled = self.imputer.transform(X_scaled)
+        # 3. Desescalar (volvemos a las unidades originales)
+        X_imputed_original = self.scaler.inverse_transform(X_imputed_scaled)
+        
+        if isinstance(X, pd.DataFrame):
+            return pd.DataFrame(
+                X_imputed_original, 
+                columns=X.columns, 
+                index=X.index
+            )
+        return X_imputed_original
